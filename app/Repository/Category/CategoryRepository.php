@@ -13,7 +13,11 @@ class CategoryRepository implements CategoryRepositoryInterface
         return Category::find($id);
     }
 
-    public function delete($id)
+    /**
+     * @param int $id
+     * @return array
+     */
+    public function delete(int $id): array
     {
         try {
             $category = $this->getCategory($id);
@@ -55,7 +59,12 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     }
 
-    public function update(Request $request, $id)
+    /**
+     * @param Request $request
+     * @param Request $id
+     * @return array
+     */
+    public function update(Request $request, $id): array
     {
         try {
             DB::beginTransaction();
@@ -101,7 +110,12 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     }
 
-    public function getCategoriesByRequest(Request $request, $with_trashed = false)
+    /**
+     * @param Request $request
+     * @param false $with_trashed
+     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Query\Builder[]|\Illuminate\Support\Collection
+     */
+    public function getCategoriesByRequest(Request $request, bool $with_trashed = false): array|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
     {
         if ($with_trashed) {
             $categories = Category::withTrashed();
@@ -117,7 +131,12 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     }
 
-    public function create(Request $request)
+    /**
+     * @param Request $request
+     * @return array
+     */
+
+    public function create(Request $request): array
     {
         try {
             $category = new Category();

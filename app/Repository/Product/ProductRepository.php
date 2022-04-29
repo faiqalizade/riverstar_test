@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\DB;
 class ProductRepository implements ProductRepositoryInterface
 {
 
-    public function getProduct(int $id)
+    /**
+     * @param int $id
+     * @return mixed
+     */
+    public function getProduct(int $id): mixed
     {
         return Product::find($id);
     }
@@ -31,8 +35,12 @@ class ProductRepository implements ProductRepositoryInterface
         return ProductCategoryRel::upsert($data, ['id']);
     }
 
-
-    public function update(int $id, Request $request)
+    /**
+     * @param Request $request
+     * @param int $id
+     * @return array
+     */
+    public function update(Request $request,int $id): array
     {
         try {
             DB::beginTransaction();
@@ -96,7 +104,12 @@ class ProductRepository implements ProductRepositoryInterface
         }
     }
 
-    public function create(Request $request)
+    /**
+     * @param Request $request
+     * @return array
+     */
+
+    public function create(Request $request) : array
     {
         try {
             DB::beginTransaction();
@@ -147,8 +160,11 @@ class ProductRepository implements ProductRepositoryInterface
 
     }
 
-
-    public function delete($id)
+    /**
+     * @param $id
+     * @return array
+     */
+    public function delete($id): array
     {
         $product = $this->getProduct($id);
         if (!$product) {
@@ -174,6 +190,12 @@ class ProductRepository implements ProductRepositoryInterface
         ];
     }
 
+    /**
+     * @param Request $request
+     * @param $with_trashed
+     * @return array|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
+     */
+
     public function getProductsByRequest(Request $request, $with_trashed): array|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
     {
         if ($with_trashed && $with_trashed != 0) {
@@ -183,9 +205,7 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         $query->select(['id', 'title', 'price', 'status', 'created_at']);
-        $query->with(['categories'=>function($query){
-//            $query->select('categories.id as category_id');
-        }]);
+        $query->with('categories');
 
         $query->when($request->get('product_name'), function ($query) use ($request) {
             $query->where('title', 'LIKE', "%{$request->get('product_name')}%");
@@ -193,7 +213,6 @@ class ProductRepository implements ProductRepositoryInterface
             $query->whereHas('categories', function ($query) use ($request) {
                 $query->where('title', 'LIKE', "%{$request->get('category_name')}%");
             });
-//            $query->select('categories.id as categor')
         })->when($request->get('price_from'), function ($query) use ($request) {
             $query->where('price', '>=', $request->get('price_from'));
         })->when($request->get('price_to'), function ($query) use ($request) {
