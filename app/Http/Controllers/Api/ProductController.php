@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResource;
 use App\Repository\Product\ProductRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -41,6 +43,7 @@ class ProductController extends ApiController
             'price_to' => 'int',
             'not_deleted' => 'int|in:0,1',
         ];
+
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
@@ -57,7 +60,7 @@ class ProductController extends ApiController
         return response()->json([
             'error' => false,
             'msg' => 'Successfully',
-            'data' => $data,
+            'data' => new ProductCollection($data),
         ]);
     }
 
@@ -65,6 +68,7 @@ class ProductController extends ApiController
     public function show($id)
     {
         $product = $this->repository->getProduct($id);
+
         if (!$product) {
             return response()->json([
                 'error' => false,
@@ -78,7 +82,7 @@ class ProductController extends ApiController
         return response()->json([
             'error' => false,
             'msg' => 'Successfully',
-            'data' => $product,
+            'data' => new ProductResource($product),
         ]);
     }
 
@@ -96,7 +100,9 @@ class ProductController extends ApiController
             'categories.*' => 'required|int|distinct',
             'status' => 'required|int|in:0,1'
         ];
+
         $validator = Validator::make($request->all(), $rules);
+
         if ($validator->fails()) {
             return response()->json([
                 'error' => true,

@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryCollection;
+use App\Http\Resources\CategoryResource;
 use App\Repository\Category\CategoryRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -33,6 +34,7 @@ class CategoryController extends ApiController
      */
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
+
         $rules = [
             'title' => 'min:3|string',
             'not_deleted' => 'int|in:1,2'
@@ -52,24 +54,22 @@ class CategoryController extends ApiController
         return response()->json([
             'error' => false,
             'msg' => 'Successfully',
-            'data' => $categories,
+            'data' => new CategoryCollection($categories),
         ]);
 
     }
 
-    public function show($id){
+    /**
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show($id) : \Illuminate\Http\JsonResponse{
         $category = $this->repository->getCategory($id);
-        if(!$category){
-            return response()->json([
-                'error' => false,
-                'msg' => 'Category not found',
-            ],404);
-        }
 
         return response()->json([
             'error' => false,
             'msg' =>  'Successfully',
-            'data' => $category,
+            'data' => new CategoryResource($category),
         ]);
     }
 
@@ -83,7 +83,9 @@ class CategoryController extends ApiController
         $rules = [
             'title' => 'required|string|min:3',
         ];
+
         $validator = Validator::make($request->all(), $rules);
+
         if ($validator->fails()) {
             return response()->json([
                 'error' => true,
@@ -109,7 +111,9 @@ class CategoryController extends ApiController
         $rules = [
             'title' => 'required|string|min:3',
         ];
+
         $validator = Validator::make($request->all(), $rules);
+
         if ($validator->fails()) {
             return response()->json([
                 'error' => true,
@@ -119,7 +123,6 @@ class CategoryController extends ApiController
         }
 
         $action = $this->repository->update($request, $id);
-
 
         return $this->getResponse($action);
     }
@@ -132,8 +135,6 @@ class CategoryController extends ApiController
     public function destroy($id): \Illuminate\Http\JsonResponse
     {
         $action = $this->repository->delete($id);
-
         return $this->getResponse($action);
-
     }
 }

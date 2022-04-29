@@ -2,6 +2,7 @@
 
 namespace App\Repository\Product;
 
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\ProductCategoryRel;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function getProduct(int $id): mixed
     {
-        return Product::find($id);
+        return Product::findOrFail($id);
     }
 
     private function insertRelations($categories, $product)
@@ -47,26 +48,15 @@ class ProductRepository implements ProductRepositoryInterface
 
             $product = $this->getProduct($id);
 
-            if (!$product) {
-                return [
-                    'error' => 'true',
-                    'msg' => 'Product not found',
-                    'code' => 404,
-                ];
-            }
-
             $product->fill($request->only(['title', 'price', 'status']));
 
-            $saved = $product->save();
-
-            if (!$saved) {
+            if (!$product->save()) {
                 return [
                     'error' => 'true',
                     'msg' => '',
                     'code' => 500,
                 ];
             }
-
 
             $product->load('relations');
 
@@ -92,6 +82,7 @@ class ProductRepository implements ProductRepositoryInterface
                 'error' => false,
                 'msg' => 'Successfully',
                 'data' => $product,
+                'resource' => ProductResource::class,
             ];
 
         } catch (\Exception $exception) {
@@ -118,10 +109,7 @@ class ProductRepository implements ProductRepositoryInterface
 
             $product->fill($request->only(['title', 'price', 'status']));
 
-            $saved = $product->save();
-
-            if (!$saved) {
-
+            if (!$product->save()) {
                 return [
                     'error' => 'true',
                     'msg' => 'Server error',
@@ -138,6 +126,7 @@ class ProductRepository implements ProductRepositoryInterface
                     'code' => 500,
                 ];
             }
+
             DB::commit();
 
             $product->load('categories');
@@ -146,6 +135,7 @@ class ProductRepository implements ProductRepositoryInterface
                 'error' => false,
                 'msg' => 'Successfully',
                 'data' => $product,
+                'resource' => ProductResource::class,
                 'code' => 200,
             ];
         } catch (\Exception $exception) {
@@ -167,22 +157,14 @@ class ProductRepository implements ProductRepositoryInterface
     public function delete($id): array
     {
         $product = $this->getProduct($id);
-        if (!$product) {
-            return [
-                'error' => true,
-                'code' => 404,
-                'msg' => 'Product not found',
-            ];
-        }
-        $action = $product->delete();
-        if ($action) {
+
+        if ($product->delete()) {
             return [
                 'error' => false,
                 'code' => 200,
                 'msg' => 'Successfully',
             ];
         }
-
         return [
             'error' => true,
             'code' => 500,

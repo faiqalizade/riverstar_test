@@ -20,8 +20,8 @@ class ApiController extends Controller
                 'error' => false,
                 'msg' => 'Successfully',
             ];
-            if(isset($action['data']) && $action['data']){
-                $res['data'] = $action['data'];
+            if(isset($action['data']) && $action['data'] && isset($action['resource'])){
+                $res['data'] = new $action['resource']($action['data']);
             }
             return response()->json($res);
         }

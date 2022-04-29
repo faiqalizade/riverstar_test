@@ -2,6 +2,7 @@
 
 namespace App\Repository\Category;
 
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +11,7 @@ class CategoryRepository implements CategoryRepositoryInterface
 {
     public function getCategory($id)
     {
-        return Category::find($id);
+        return Category::findOrFail($id);
     }
 
     /**
@@ -19,43 +20,31 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function delete(int $id): array
     {
-        try {
-            $category = $this->getCategory($id);
+        $category = $this->getCategory($id);
 
-            if(!$category){
-                return [
-                    'error' => true,
-                    'msg' => 'Category not found',
-                    'code' => 404,
-                ];
-            }
+        $category->load('relations');
 
-            $category->load('relations');
+        if ($category->relations->count()) {
+            return [
+                'error' => true,
+                'msg' => 'There is a product',
+                'code' => 500,
+            ];
+        }
 
-            if ($category->relations->count()) {
-                return [
-                    'error' => true,
-                    'msg' => 'There is a product',
-                    'code' => 500,
-                ];
-            }
-
-            $category->delete();
-
+        if ($category->delete()) {
             return [
                 'error' => false,
                 'msg' => 'Successfully',
                 'code' => 500,
             ];
-
-
-        } catch (\Exception $exception) {
-            return [
-                'error' => true,
-                'msg' => $exception->getMessage(),
-                'code' => 500,
-            ];
         }
+
+        return [
+            'error' => true,
+            'msg' => 'Server error',
+            'code' => 500,
+        ];
 
     }
 
@@ -66,47 +55,26 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function update(Request $request, $id): array
     {
-        try {
-            DB::beginTransaction();
-            $category = $this->getCategory($id);
-            if (!$category) {
-                return [
-                    'error' => true,
-                    'msg' => 'Category not found',
-                    'code' => 404,
-                ];
-            }
-            $category->fill($request->only(['title']));
 
-            $saved = $category->save();
+        $category = $this->getCategory($id);
 
+        $category->fill($request->only(['title']));
 
-            if ($saved) {
-                DB::commit();
-
-                return [
-                    'error' => false,
-                    'msg' => 'Successfully',
-                    'data' => $category,
-                    'code' => 200,
-                ];
-            }
-
+        if ($category->save()) {
             return [
-                'error' => true,
-                'msg' => 'Server error',
-                'code' => 500,
-            ];
-
-
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            return [
-                'error' => true,
-                'msg' => $exception->getMessage(),
-                'code' => 500,
+                'error' => false,
+                'msg' => 'Successfully',
+                'data' => $category,
+                'resource' => CategoryResource::class,
+                'code' => 200,
             ];
         }
+        return [
+            'error' => true,
+            'msg' => 'Server error',
+            'code' => 500,
+        ];
+
 
     }
 
@@ -138,37 +106,27 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     public function create(Request $request): array
     {
-        try {
-            $category = new Category();
+        $category = new Category();
 
-            $category->fill($request->only(['title']));
+        $category->fill($request->only(['title']));
 
-            $saved = $category->save();
-
-
-            if ($saved) {
-                return [
-                    'error' => false,
-                    'msg' => 'Successfully',
-                    'data' => $category,
-                    'code' => 200,
-                ];
-            }
+        if ($category->save()) {
             return [
-                'error' => true,
-                'msg' => 'Server error',
-                'code' => 500,
-            ];
-
-        } catch (\Exception $exception) {
-
-            return [
-                'error' => true,
-                'msg' => $exception->getMessage(),
+                'error' => false,
+                'msg' => 'Successfully',
+                'data' => $category,
+                'resource' => CategoryResource::class,
                 'code' => 200,
             ];
-
         }
+
+        return [
+            'error' => true,
+            'msg' => 'Server error',
+            'code' => 500,
+        ];
+
+
     }
 
 }

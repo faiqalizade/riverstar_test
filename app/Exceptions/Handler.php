@@ -2,6 +2,10 @@
 
 namespace App\Exceptions;
 
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductCategoryRel;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -35,6 +39,20 @@ class Handler extends ExceptionHandler
         'password',
         'password_confirmation',
     ];
+
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof ModelNotFoundException && in_array($e->getModel(),[Product::class,Category::class])) {
+            return response()->json([
+                'error' => false,
+                'message' => 'Data not found',
+                'data' => [],
+            ], 404);
+        }
+
+
+        return parent::render($request, $e);
+    }
 
     /**
      * Register the exception handling callbacks for the application.
