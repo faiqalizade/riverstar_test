@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Repository\Product\ProductRepositoryInterface;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
 
 /**
  *
@@ -13,23 +11,34 @@ use Illuminate\Support\Facades\Validator;
 class ApiController extends Controller
 {
 
-    public function getResponse($action): \Illuminate\Http\JsonResponse
+    public function getResponse($action): JsonResponse
     {
         if (!$action['error']) {
             $res = [
                 'error' => false,
-                'msg' => 'Successfully',
+                'message' => 'Successfully',
             ];
-            if(isset($action['data']) && $action['data'] && isset($action['resource'])){
+            if (isset($action['data']) && $action['data'] && isset($action['resource'])) {
                 $res['data'] = new $action['resource']($action['data']);
             }
             return response()->json($res);
         }
 
-        return response()->json([
+        return $this->getErrorResponse($action['code'], $action['msg']);
+
+    }
+
+    public function getErrorResponse($code = 500, $message = 'Server error', $errors = []): JsonResponse
+    {
+        $result = [
             'error' => true,
-            'msg' => $action['msg'],
-        ], $action['code']);
+            'message' => $message,
+        ];
+        if ($errors) {
+            $result['errors'] = $errors;
+        }
+
+        return response()->json($result, $code);
     }
 
 }

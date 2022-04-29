@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Repository\Product\ProductRepositoryInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -31,9 +31,9 @@ class ProductController extends ApiController
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function index(Request $request): \Illuminate\Http\JsonResponse
+    public function index(Request $request): JsonResponse
     {
 
         $rules = [
@@ -47,41 +47,31 @@ class ProductController extends ApiController
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json([
-                'error' => true,
-                'errors' => $validator->errors(),
-                'msg' => 'Validator error',
-                'data' => [],
-            ], 422);
+            return $this->getErrorResponse(422,'Validator error',$validator->errors());
         }
 
         $data = $this->repository->getProductsByRequest($request, $request->get('not_deleted'));
 
         return response()->json([
             'error' => false,
-            'msg' => 'Successfully',
+            'message' => 'Successfully',
             'data' => new ProductCollection($data),
         ]);
     }
 
-
-    public function show($id)
+    /**
+     * @param $id
+     * @return JsonResponse
+     */
+    public function show($id): JsonResponse
     {
         $product = $this->repository->getProduct($id);
 
-        if (!$product) {
-            return response()->json([
-                'error' => false,
-                'msg' => 'Product not found',
-            ], 404);
-        }
-
         $product->load('categories');
-
 
         return response()->json([
             'error' => false,
-            'msg' => 'Successfully',
+            'message' => 'Successfully',
             'data' => new ProductResource($product),
         ]);
     }
@@ -89,9 +79,9 @@ class ProductController extends ApiController
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $rules = [
             'title' => 'required|min:3',
@@ -104,11 +94,7 @@ class ProductController extends ApiController
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json([
-                'error' => true,
-                'errors' => $validator->errors(),
-                'msg' => 'Validator error'
-            ], 422);
+            return $this->getErrorResponse(422,'Validator error',$validator->errors());
         }
 
         $action = $this->repository->create($request);
@@ -122,9 +108,9 @@ class ProductController extends ApiController
     /**
      * @param Request $request
      * @param $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function update(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
         $rules = [
             'title' => 'required|min:3',
@@ -135,11 +121,7 @@ class ProductController extends ApiController
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json([
-                'error' => true,
-                'errors' => $validator->errors(),
-                'msg' => 'Validator error'
-            ], 422);
+            return $this->getErrorResponse(422,'Validator error',$validator->errors());
         }
 
         $action = $this->repository->update($request,$id);
@@ -150,9 +132,9 @@ class ProductController extends ApiController
 
     /**
      * @param $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function destroy($id): \Illuminate\Http\JsonResponse
+    public function destroy($id): JsonResponse
     {
         $action = $this->repository->delete($id);
 

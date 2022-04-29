@@ -138,8 +138,11 @@ class ProductRepository implements ProductRepositoryInterface
                 'resource' => ProductResource::class,
                 'code' => 200,
             ];
+
         } catch (\Exception $exception) {
+
             DB::rollBack();
+
             return [
                 'error' => 'true',
                 'msg' => $exception->getMessage(),

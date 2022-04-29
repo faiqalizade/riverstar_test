@@ -14,5 +14,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::resource('products',\App\Http\Controllers\Api\ProductController::class);
-Route::resource('categories',\App\Http\Controllers\Api\CategoryController::class);
+Route::resource('products', \App\Http\Controllers\Api\ProductController::class)->only(['index','show','destroy','update','store']);
+Route::resource('categories', \App\Http\Controllers\Api\CategoryController::class)->only(['index','show','destroy','update','store']);
