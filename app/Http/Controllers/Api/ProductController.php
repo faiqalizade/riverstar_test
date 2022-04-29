@@ -136,7 +136,7 @@ class ProductController extends ApiController
             ], 422);
         }
 
-        $action = $this->repository->update($id, $request);
+        $action = $this->repository->update($request,$id);
 
         return $this->getResponse($action);
     }
