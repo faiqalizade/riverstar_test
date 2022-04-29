@@ -14,6 +14,7 @@ class Category extends Model
 {
     use HasFactory,SoftDeletes;
 
+    protected $appends = ['products_count'];
     protected $fillable = ['title'];
 
 
@@ -29,5 +30,7 @@ class Category extends Model
         return $this->hasMany(ProductCategoryRel::class);
     }
 
-
+    public function getProductsCountAttribute(){
+        return $this->products()->count();
+    }
 }
