@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Product;
+use App\Observers\ProductObserve;
 use App\Repository\Category\CategoryRepository;
 use App\Repository\Category\CategoryRepositoryInterface;
 use App\Repository\Product\ProductRepository;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Product::observe(ProductObserve::class);
         $this->app->bind(ProductRepositoryInterface::class,ProductRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class,CategoryRepository::class);
     }
